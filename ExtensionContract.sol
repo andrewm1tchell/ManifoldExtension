@@ -10,6 +10,7 @@ import "@manifoldxyz/libraries-solidity/contracts/access/IAdminControl.sol";
 import "@manifoldxyz/creator-core-solidity/contracts/core/IERC721CreatorCore.sol";
 import "@manifoldxyz/creator-core-solidity/contracts/extensions/CreatorExtension.sol";
 import "@manifoldxyz/creator-core-solidity/contracts/extensions/ICreatorExtensionTokenURI.sol";
+import "@manifoldxyz/libraries-solidity/contracts/access/AdminControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -23,7 +24,7 @@ import "./IManifoldERC721Edition.sol";
  * mitchel1.eth, mitchel1.tez
  * Uses the Manifold ERC721 Edition Controller Implementation
  */
-contract test is CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edition, ReentrancyGuard {
+contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edition, ReentrancyGuard {
     using SafeMath for uint256;
     using Strings for uint256;
 
@@ -53,7 +54,7 @@ contract test is CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edi
         _;
     }
     
-    function supportsInterface(bytes4 interfaceId) public view virtual override(CreatorExtension, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(AdminControl, CreatorExtension, IERC165) returns (bool) {
         return interfaceId == type(ICreatorExtensionTokenURI).interfaceId || interfaceId == type(IManifoldERC721Edition).interfaceId ||
                CreatorExtension.supportsInterface(interfaceId);
     }
@@ -223,7 +224,7 @@ contract test is CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edi
         delete _scripts[creator][series][index];
     }
 
-    function withdrawAll(address creator) public creatorAdminRequired(creator) payable {
+    function withdrawAll(address creator) public adminRequired {
         require(payable(msg.sender).send(address(this).balance));
     }
 }
