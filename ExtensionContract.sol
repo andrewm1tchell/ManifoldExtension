@@ -11,9 +11,7 @@ import "@manifoldxyz/creator-core-solidity/contracts/core/IERC721CreatorCore.sol
 import "@manifoldxyz/creator-core-solidity/contracts/extensions/CreatorExtension.sol";
 import "@manifoldxyz/creator-core-solidity/contracts/extensions/ICreatorExtensionTokenURI.sol";
 import "@manifoldxyz/libraries-solidity/contracts/access/AdminControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./IManifoldERC721Edition.sol";
 
@@ -24,8 +22,7 @@ import "./IManifoldERC721Edition.sol";
  * mitchel1.eth, mitchel1.tez
  * Uses the Manifold ERC721 Edition Controller Implementation
  */
-contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edition, ReentrancyGuard {
-    using SafeMath for uint256;
+contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edition {
     using Strings for uint256;
 
     struct IndexRange {
