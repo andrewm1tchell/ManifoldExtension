@@ -44,16 +44,8 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
 
     mapping(address => uint256) public _currentSeries;
 
-    bool public pause = true;
+    mapping(address => mapping(uint256 => bool)) pauses;
 
-    /**
-     * @dev Only allows approved admins to call the specified function
-     */
-    modifier creatorAdminRequired(address creator) {
-        require(IAdminControl(creator).isAdmin(msg.sender), "Must be owner or admin of creator contract");
-        _;
-    }
-    
     function supportsInterface(bytes4 interfaceId) public view virtual override(AdminControl, CreatorExtension, IERC165) returns (bool) {
         return interfaceId == type(ICreatorExtensionTokenURI).interfaceId || interfaceId == type(IManifoldERC721Edition).interfaceId ||
                CreatorExtension.supportsInterface(interfaceId);
@@ -76,7 +68,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     /**
      * @dev See {IManifoldERC721Edition-createSeries}.
      */
-    function createSeries(address creator, uint256 maxSupply_, string calldata prefix) external override creatorAdminRequired(creator) returns(uint256) {
+    function createSeries(address creator, uint256 maxSupply_, string calldata prefix) external override adminRequired returns(uint256) {
         _currentSeries[creator] += 1;
         uint256 series = _currentSeries[creator];
         _maxSupply[creator][series] = maxSupply_;
@@ -95,7 +87,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     /**
      * See {IManifoldERC721Edition-setTokenURIPrefix}.
      */
-    function setTokenURIPrefix(address creator, uint256 series, string calldata prefix) external override creatorAdminRequired(creator) {
+    function setTokenURIPrefix(address creator, uint256 series, string calldata prefix) external override adminRequired {
         require(series > 0 && series <= _currentSeries[creator], "Invalid series");
         _tokenPrefix[creator][series] = prefix;
     }
@@ -103,7 +95,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
      /**
      * Set price of a series
      */
-    function setPrice(address creator, uint256 series, uint256 price) external creatorAdminRequired(creator) {
+    function setPrice(address creator, uint256 series, uint256 price) external adminRequired {
         require(series > 0 && series <= _currentSeries[creator], "Invalid series");
         _price[creator][series] = price;
     }
@@ -120,7 +112,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
      * @dev See {IManifoldERC721Edition-mint}.
      */
     function mint(address creator, uint256 series, address recipient, uint16 count) external override payable {
-        require(!pause, "Sale has not started");
+        require(!pauses[creator][series], "Sale has not started");
         require(count > 0, "Invalid amount requested");
         require(_totalSupply[creator][series]+count <= _maxSupply[creator][series], "Too many requested");
         require(msg.value >=_price[creator][series].mul(count), "Not enough ETH sent");
@@ -140,7 +132,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     /**
      * @dev See {IManifoldERC721Edition-mint}.
      */
-    function mintInternal(address creator, uint256 series, address[] calldata recipients) external override nonReentrant creatorAdminRequired(creator) {
+    function mintInternal(address creator, uint256 series, address[] calldata recipients) external override adminRequired {
         require(recipients.length > 0, "Invalid amount requested");
         require(_totalSupply[creator][series]+recipients.length <= _maxSupply[creator][series], "Too many requested");
         
@@ -208,19 +200,19 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     /**
      * @dev Pause is used to manage when mints can occur
      */
-    function togglePause(address creator) public creatorAdminRequired(creator) {
-        pause = !pause;
+    function togglePause(address creator, uint256 series, bool paused) public adminRequired {
+        pauses[creator][series] = paused;
     }
 
-    function addScriptChunk(address creator, uint256 series, uint256 index, string memory _chunk) public creatorAdminRequired(creator) {
+    function addScriptChunk(address creator, uint256 series, uint256 index, string memory _chunk) public adminRequired {
         _scripts[creator][series][index]=_chunk;
     }
 
-    function getScriptChunk(address creator, uint256 series, uint256 index) public view returns (string memory){
+    function getScriptChunk(address creator, uint256 series, uint256 index) public view returns (string memory) {
         return _scripts[creator][series][index];
     }
 
-    function removeScriptChunk(address creator, uint256 series, uint256 index) public creatorAdminRequired(creator) {
+    function removeScriptChunk(address creator, uint256 series, uint256 index) public adminRequired {
         delete _scripts[creator][series][index];
     }
 
