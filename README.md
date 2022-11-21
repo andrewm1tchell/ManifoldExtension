@@ -1,3 +1,5 @@
 # ManifoldExtension
 Manifold Extension for onchain art.
-Support Lazy minting.
+Supports Lazy minting.
+
+Still updating the Readme...
