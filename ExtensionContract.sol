@@ -37,6 +37,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     mapping(address => mapping(uint256 => IndexRange[])) public _indexRanges;
     mapping(address => mapping(uint256 => mapping(uint256 => string))) public _scripts;
     mapping(address => mapping(uint256 => mapping(uint256 => uint256))) _creationDates;
+    mapping(address => mapping(uint256 => mapping(uint256 => string))) _tokenHashes;
     mapping(address => mapping(uint256 => mapping(uint256 => address))) _creators;
 
     mapping(address => uint256) public _currentSeries;
