@@ -9,3 +9,5 @@ This contract can span multiple series, and handle lazy minted generative artwor
 I used a form of this for my collections: FLUME and SKY MEADOW.
 
 Obviously, test it in goerli before yelling at me if you are going to use this.
+
+Shoutout to YungWknd, the goat for helping me with this.
