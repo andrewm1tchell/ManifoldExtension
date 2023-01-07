@@ -12,6 +12,7 @@ import "@manifoldxyz/creator-core-solidity/contracts/extensions/CreatorExtension
 import "@manifoldxyz/creator-core-solidity/contracts/extensions/ICreatorExtensionTokenURI.sol";
 import "@manifoldxyz/libraries-solidity/contracts/access/AdminControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./IManifoldERC721Edition.sol";
 
@@ -24,7 +25,7 @@ import "./IManifoldERC721Edition.sol";
  */
 contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IManifoldERC721Edition {
     using Strings for uint256;
-
+    using SafeMath for uint256;
     struct IndexRange {
         uint256 startIndex;
         uint256 count;
@@ -37,7 +38,7 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     mapping(address => mapping(uint256 => IndexRange[])) public _indexRanges;
     mapping(address => mapping(uint256 => mapping(uint256 => string))) public _scripts;
     mapping(address => mapping(uint256 => mapping(uint256 => uint256))) _creationDates;
-    mapping(address => mapping(uint256 => mapping(uint256 => string))) _tokenHashes;
+    mapping(address => mapping(uint256 => mapping(uint256 => bytes32))) _tokenHashes;
     mapping(address => mapping(uint256 => mapping(uint256 => address))) _creators;
 
     mapping(address => uint256) public _currentSeries;
@@ -120,10 +121,10 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
         for (uint256 i = 0; i < count;) {
             _creators[creator][series][mintIndex] = recipient;
             _creationDates[creator][series][mintIndex] = block.number;
+            generateTokenHash(creator,series,mintIndex);
             mintIndex++;
             unchecked{i++;}
         }
-
         _updateIndexRanges(creator, series, tokenIds[0], count);
     }
 
@@ -190,9 +191,17 @@ contract test is AdminControl, CreatorExtension, ICreatorExtensionTokenURI, IMan
     /**
      * @dev Token Hash used to generate art piece
      */
-    function tokenHash(address creator, uint256 series, uint256 tokenId) public view returns (bytes32){
+    function generateTokenHash(address creator, uint256 series, uint256 tokenId) internal {
+        bytes32 tokenHash = bytes32(keccak256(abi.encodePacked(address(this), _creationDates[creator][series][tokenId], _creators[creator][series][tokenId], tokenId)));
+        _tokenHashes[creator][series][tokenId] = tokenHash;
+    }
+
+    /**
+     * @dev Token Hash used to generate art piece
+     */
+    function getTokenHAsh(address creator, uint256 series, uint256 tokenId) public view returns (bytes32){
         require(_totalSupply[creator][series] >= tokenId, "Token nonexistent");
-        return bytes32(keccak256(abi.encodePacked(address(this), _creationDates[creator][series][tokenId], _creators[creator][series][tokenId], tokenId)));
+        return _tokenHashes[creator][series][tokenId];
     }
 
     /**
